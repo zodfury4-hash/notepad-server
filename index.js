@@ -29,7 +29,7 @@ const Note = mongoose.model("Note", noteSchema);
 // --- ROUTES ---
 
 // 1. POST: Create a new note
-app.post("/api/notes", async (req, res) => {
+app.post("/api/notes/create", async (req, res) => {
     try {
         const { title, content } = req.body;
         const newNote = new Note({
