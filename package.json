@@ -2,7 +2,7 @@
   "name": "notepad-api",
   "version": "1.0.0",
   "description": "Professional Notepad API",
-  "main": "notes.js",
+  "main": "index.js",
   "type": "module",
   "scripts": {
     "start": "node notes.js",
