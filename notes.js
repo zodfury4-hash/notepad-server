@@ -66,7 +66,7 @@ app.put("/api/notes/:id", async (req, res) => {
         if (!updatedNote) return res.status(404).json({ success: false, message: "Note not found" });
         res.json({ success: true, note: updatedNote });
     } catch (err) {
-        res.status(400).json({ success: false, message: err.message });
+        res.status(400).json({ success: false, message: err.message });;
     }
 });
 
