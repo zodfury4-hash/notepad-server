@@ -1,0 +1,24 @@
+{
+  "name": "notepad-api",
+  "version": "1.0.0",
+  "description": "Professional Notepad API",
+  "main": "notes.js",
+  "type": "module",
+  "scripts": {
+    "start": "node notes.js",
+    "dev": "nodemon notes.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^5.2.1",
+    "mongodb": "^7.1.1",
+    "mongoose": "^9.4.1",
+    "validator": "^13.15.35"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
