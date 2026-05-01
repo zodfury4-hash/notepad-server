@@ -3,6 +3,7 @@ import cors from "cors";
 import mongoose from "mongoose";
 import noteRoutes from './noteRoutes.js';
 import authRoutes from './authRoutes.js'; // Import your new auth file
+import connectDB from "./db.js";
 
 const app = express();
 
@@ -11,13 +12,8 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// --- MONGODB CONNECTION ---
-// Using your provided Atlas URI
-const mongoURI = "mongodb+srv://zodfury4_db_user:3388@cluster0.l6hgyjn.mongodb.net/notezilla?retryWrites=true&w=majority";
-
-mongoose.connect(mongoURI)
-    .then(() => console.log("✅ Connected to MongoDB Atlas (Notezilla)"))
-    .catch(err => console.error("❌ MongoDB Connection Error:", err));
+// --- DATABASE ---
+connectDB();
 
 // --- ROUTES ---
 app.use("/api/auth", authRoutes); // Logic for Register/Login
