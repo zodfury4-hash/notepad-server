@@ -1,45 +1,35 @@
-import e from "express";
+import express from "express";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
+import { JWT_SECRET } from "./authRoutes.js";
 
-const router = e.Router();
-const JWT_SECRET = "notezilla_secret_123";
+const router = express.Router();
 
-// --- SECURITY MIDDLEWARE ---
+// SECURITY MIDDLEWARE
 const protect = (req, res, next) => {
     const token = req.headers.authorization?.split(" ")[1];
-    if (!token) return res.status(401).json({ message: "Access denied. No token provided." });
-
+    if (!token) return res.status(401).json({ message: "Access denied" });
     try {
-        const decoded = jwt.verify(token, JWT_SECRET);
-        req.user = decoded; // Attaches the User ID to the request
+        req.user = jwt.verify(token, JWT_SECRET); // Extracts User ID
         next();
-    } catch (err) {
-        res.status(401).json({ message: "Invalid token" });
-    }
+    } catch (err) { res.status(401).json({ message: "Invalid token" }); }
 };
 
-// --- NOTE SCHEMA ---
+// Note Schema
 const noteSchema = new mongoose.Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     title: { type: String, required: true },
     content: { type: String, required: true },
-    createdAt: { type: Date, default: Date.now },
-    updatedAt: { type: Date }
+    createdAt: { type: Date, default: Date.now }
 });
-
 const Note = mongoose.model("Note", noteSchema);
 
-// --- PROTECTED ROUTES ---
-
-// 1. CREATE: Saves note with userId
+// 1. CREATE: Saves with userId
 router.post("/create", protect, async (req, res) => {
     try {
-        const { title, content } = req.body;
         const newNote = new Note({
-            userId: req.user.id,
-            title: title?.trim(),
-            content: content?.trim()
+            ...req.body,
+            userId: req.user.id // ID from the token
         });
         await newNote.save();
         res.status(201).json({ success: true, note: newNote });
@@ -48,7 +38,7 @@ router.post("/create", protect, async (req, res) => {
     }
 });
 
-// 2. GET: Returns ONLY notes belonging to the logged-in user
+// 2. GET: Returns notes for this specific user
 router.get("/", protect, async (req, res) => {
     try {
         const dbNotes = await Note.find({ userId: req.user.id }).sort({ createdAt: -1 });
@@ -58,25 +48,28 @@ router.get("/", protect, async (req, res) => {
     }
 });
 
-// 3. UPDATE: Ensures the user owns the note before updating
+// 3. UPDATE: Matches by note _id AND userId
 router.put("/update/:id", protect, async (req, res) => {
     try {
         const updatedNote = await Note.findOneAndUpdate(
             { _id: req.params.id, userId: req.user.id }, // Security Check
-            { ...req.body, updatedAt: Date.now() },
+            { ...req.body },
             { new: true }
         );
-        if (!updatedNote) return res.status(404).json({ message: "Note not found or unauthorized" });
+        if (!updatedNote) return res.status(404).json({ message: "Unauthorized or Not Found" });
         res.json({ success: true, note: updatedNote });
     } catch (err) {
         res.status(400).json({ success: false, message: err.message });
     }
 });
 
-// 4. DELETE: Ensures the user owns the note before deleting
+// 4. DELETE: Ensures ownership before removal
 router.delete("/delete/:id", protect, async (req, res) => {
     try {
-        const deletedNote = await Note.findOneAndDelete({ _id: req.params.id, userId: req.user.id });
+        const deletedNote = await Note.findOneAndDelete({ 
+            _id: req.params.id, 
+            userId: req.user.id 
+        });
         if (!deletedNote) return res.status(404).json({ message: "Note not found" });
         res.json({ success: true, message: "Deleted successfully" });
     } catch (err) {
